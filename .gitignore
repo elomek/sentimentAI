@@ -1,0 +1,11 @@
+
+# Python bytecode files
+*.pyc
+*.pyo
+__pycache__/
+
+venv/
+
+# Optional: macOS specific
+.DS_Store
+*.sqlite3
