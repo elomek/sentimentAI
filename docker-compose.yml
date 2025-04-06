@@ -1,0 +1,64 @@
+
+services:
+  sentiment_app:
+  
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all  # استفاده از تمام GPU‌ها
+    depends_on:
+      redis:
+        condition: service_healthy  # تضمین اجرای کامل Redis قبل از Django
+      postgres:
+        condition: service_healthy  # تضمین اجرای کامل PostgreSQL قبل از Django 
+    env_file:
+      - .env
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: always   
+
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+    restart: always 
+
+
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes: 
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+    restart: always 
+volumes:
+  redis_data:
+  postgres_data:
