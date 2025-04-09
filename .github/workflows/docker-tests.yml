@@ -1,0 +1,25 @@
+ name: Django Integration Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Compose
+        run: |
+          docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
+
+      - name: Show logs if failed
+        if: failure()
+        run: |
+          docker-compose -f docker-compose.test.yml logs
+ 

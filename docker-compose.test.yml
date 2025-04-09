@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  sentiment_app:
+    build: .
+    command: python manage.py test
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - .:/code
+
+  redis:
+    image: redis:latest
+    container_name: redis_test
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
+  postgres:
+    image: postgres:13
+    container_name: postgres_test
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
+volumes:
+  redis_data:
+  postgres_data:

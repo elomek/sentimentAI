@@ -22,8 +22,10 @@ import debug_toolbar
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('classifier.urls'))
-    
+    path('', include('classifier.urls')),
+    path('auth/', include('djoser.urls')),
+    path('auth/', include('djoser.urls.jwt')),
+
 ]
 
 
